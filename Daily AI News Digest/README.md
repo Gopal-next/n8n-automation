@@ -40,10 +40,6 @@ You receive **one email containing the top 10 India news headlines**, with a cli
 - JavaScript
 - Gmail
 
-## Future Improvement
-
-Replace the **Manual Trigger** with a **Schedule Trigger** to automatically send the news every morning.
-
 ## Architecture
 
 See [`architecture.png`](architecture.png).

@@ -1,148 +1,41 @@
 # n8n Automation Portfolio
 
-A collection of practical workflow automation projects built with **n8n**, integrating business applications, APIs, data processing, and AI services.
+A collection of **automation workflows built with n8n**, integrating APIs, SaaS platforms, data pipelines, databases, and AI services.
 
 ## Projects
 
-| # | Project | Focus | Technologies |
-|---|---|---|---|
-| 01 | [Customer Feedback Automation](./01-customer-feedback-automation/) | Collect feedback, store analytics data, and send automated email responses | n8n, Google Sheets, Gmail |
+### 01. Customer Feedback Collection & Automated Email Workflow
+
+Automated workflow for processing customer feedback, storing analytics data, and sending personalized email confirmations.
+
+**Stack:** `n8n` · `Google Sheets` · `Gmail` · `Workflow Automation`
+
+[View Project →](https://github.com/Gopal-next/n8n-automation/tree/main/Customer%20Feedback%20Collection%20%26%20Automated%20Email%20Workflow)
 
 ---
 
-## Current Project
+## Technical Focus
 
-### Customer Feedback Automation
+* **Workflow orchestration** with n8n
+* **API & service integrations**
+* **Event-driven automation**
+* **Data transformation & routing**
+* **Database & spreadsheet workflows**
+* **Webhooks**
+* **AI / LLM integrations**
+* **RAG & intelligent automation**
+* **Human-in-the-loop workflows**
+* **Error handling & workflow reliability**
 
-An event-driven workflow that:
+## Technology
 
-```text
-Customer submits feedback
-          ↓
-   Google Sheets Trigger
-          ↓
-      Edit Fields
-          ↓
-  Analytics Google Sheet
-          ↓
-   Automated Gmail
-          ↓
- Customer confirmation
-```
+`n8n` · `Google Sheets` · `Gmail`
 
-The workflow demonstrates:
+## Technical Focus
 
-- Google Sheets trigger automation
+- Event-driven workflow automation
+- Google Sheets integration
 - Data transformation and field mapping
-- Feedback analytics storage
-- Personalized Gmail communication
+- Automated email notifications
 - Multi-step workflow orchestration
-- Integration between multiple business services
 
-See the complete project documentation inside the project directory.
-
----
-
-## What This Portfolio Demonstrates
-
-As more workflows are added, this repository will cover practical concepts such as:
-
-- Workflow automation
-- Event-driven processes
-- API integrations
-- Webhooks
-- Data transformation
-- Database operations
-- AI/LLM integrations
-- RAG workflows
-- Human-in-the-loop automation
-- Error handling and retries
-- Authentication and secure credential management
-
----
-
-## Typical Architecture
-
-```text
-                    External Event
-                          │
-                          ▼
-                   n8n Trigger
-                          │
-                          ▼
-                 Data Processing
-                          │
-                          ▼
-                  Business Logic
-                          │
-              ┌───────────┼───────────┐
-              ▼           ▼           ▼
-            API         Database     AI/LLM
-              │           │           │
-              └───────────┼───────────┘
-                          ▼
-                   Decision / Router
-                          │
-                          ▼
-                       Action
-```
-
-The exact architecture depends on the individual workflow.
-
----
-
-## Repository Structure
-
-```text
-n8n-automation-portfolio/
-│
-├── README.md
-│
-├── 01-customer-feedback-automation/
-│   ├── README.md
-│   ├── workflow.json
-│   ├── architecture.png
-│   └── screenshots/
-│
-└── ...
-```
-
-Each completed project can contain:
-
-- `README.md` — project documentation
-- `workflow.json` — n8n workflow export
-- `architecture.png` — workflow architecture
-- `screenshots/` — workflow and result screenshots
-
----
-
-## Technologies
-
-Depending on the workflow, this portfolio may use:
-
-- **n8n**
-- **Google Sheets**
-- **Gmail**
-- **REST APIs**
-- **Webhooks**
-- **PostgreSQL**
-- **Python / FastAPI**
-- **LLM APIs**
-- **Vector databases**
-- **RAG**
-- **Docker**
-- **Git / GitHub**
-
----
-
-## Security
-
-Credentials, API keys, passwords, access tokens, and other secrets should never be committed to the repository.
-
-Review exported n8n workflows before publishing them publicly and keep sensitive configuration in secure credentials or environment variables.
-
----
-
-## Goal
-
-This repository showcases practical **n8n workflow automation**, progressing from straightforward business automations toward more advanced integrations involving APIs, databases, AI, RAG, and human-in-the-loop systems.

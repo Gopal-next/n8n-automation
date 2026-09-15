@@ -16,26 +16,14 @@ Automated workflow for processing customer feedback, storing analytics data, and
 
 ## Technical Focus
 
-* **Workflow orchestration** with n8n
-* **API & service integrations**
-* **Event-driven automation**
-* **Data transformation & routing**
-* **Database & spreadsheet workflows**
-* **Webhooks**
-* **AI / LLM integrations**
-* **RAG & intelligent automation**
-* **Human-in-the-loop workflows**
-* **Error handling & workflow reliability**
+* **Event-driven workflow automation**
+* **Google Sheets integration**
+* **Data transformation and field mapping**
+* **Automated email notifications**
+* **Multi-step workflow orchestration**
 
 ## Technology
 
 `n8n` · `Google Sheets` · `Gmail`
 
-## Technical Focus
-
-- Event-driven workflow automation
-- Google Sheets integration
-- Data transformation and field mapping
-- Automated email notifications
-- Multi-step workflow orchestration
 

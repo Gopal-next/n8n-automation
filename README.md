@@ -14,16 +14,25 @@ Automated workflow for processing customer feedback, storing analytics data, and
 
 ---
 
+### 02. India News Daily Email
+
+Automated workflow that fetches the latest India news, selects the top 10 headlines, formats them into an HTML newsletter, and sends them to Gmail in a single email.
+
+**Stack:** `n8n` · `RSS` · `HTTP Request` · `XML` · `JavaScript` · `Gmail`
+
+[View Project →](https://github.com/Gopal-next/n8n-automation/tree/main/India%20News%20Daily%20Email)
+
+---
+
 ## Technical Focus
 
 * **Event-driven workflow automation**
-* **Google Sheets integration**
+* **API and RSS integration**
 * **Data transformation and field mapping**
 * **Automated email notifications**
+* **HTML email generation**
 * **Multi-step workflow orchestration**
 
 ## Technology
 
-`n8n` · `Google Sheets` · `Gmail`
-
-
+`n8n` · `Google Sheets` · `RSS` · `Gmail` · `JavaScript`

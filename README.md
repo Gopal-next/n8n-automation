@@ -20,7 +20,7 @@ Automated workflow that fetches the latest India news, selects the top 10 headli
 
 **Stack:** `n8n` · `RSS` · `HTTP Request` · `XML` · `JavaScript` · `Gmail`
 
-[View Project →](https://github.com/Gopal-next/n8n-automation/tree/main/India%20News%20Daily%20Email)
+[View Project →](https://github.com/Gopal-next/n8n-automation/tree/main/Daily%20AI%20News%20Digest)
 
 ---
 

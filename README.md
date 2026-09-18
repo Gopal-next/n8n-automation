@@ -1,6 +1,6 @@
 # n8n Automation Portfolio
 
-A collection of **automation workflows built with n8n**, integrating APIs, SaaS platforms, data pipelines, databases, and AI services.
+A collection of **automation workflows built with n8n**, integrating APIs, SaaS platforms, data pipelines, and AI services.
 
 ## Projects
 
@@ -24,15 +24,29 @@ Automated workflow that fetches the latest India news, selects the top 10 headli
 
 ---
 
+### 03. YouTube Video Summarizer
+
+AI-powered n8n workflow that accepts a YouTube video link, fetches its transcript using the Supadata API, checks previously summarized videos, and generates summaries with OpenAI. Long transcripts are automatically split into chunks before summarization, and results are stored in Google Sheets for future reuse.
+
+**Stack:** `n8n` · `Supadata API` · `OpenAI` · `Google Sheets` · `JavaScript` · `YouTube Transcript`
+
+[View Project →](https://github.com/Gopal-next/n8n-automation/tree/main/Yotube%20video%20summarizer)
+
+---
+
 ## Technical Focus
 
 * **Event-driven workflow automation**
 * **API and RSS integration**
+* **AI-powered workflow automation**
 * **Data transformation and field mapping**
+* **Conditional routing and workflow logic**
+* **Transcript processing and chunking**
 * **Automated email notifications**
 * **HTML email generation**
 * **Multi-step workflow orchestration**
+* **AI summarization and data storage**
 
 ## Technology
 
-`n8n` · `Google Sheets` · `RSS` · `Gmail` · `JavaScript`
+`n8n` · `Google Sheets` · `RSS` · `Gmail` · `OpenAI` · `Supadata API` · `JavaScript`

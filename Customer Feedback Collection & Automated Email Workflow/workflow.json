@@ -1,0 +1,251 @@
+{
+  "name": "Customer Feedback Collection & Automated Email Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "18vBBCZoHh9zp6Bs1o3FO-VD_zne7vnGaLFK6cPh2qMs",
+          "mode": "list",
+          "cachedResultName": "get responses",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18vBBCZoHh9zp6Bs1o3FO-VD_zne7vnGaLFK6cPh2qMs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1076981957,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18vBBCZoHh9zp6Bs1o3FO-VD_zne7vnGaLFK6cPh2qMs/edit#gid=1076981957"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -48
+      ],
+      "id": "6aa57265-4598-42e3-9982-7e4cdb82d1d6",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "trXPIA05f3wOcHJU",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "332b663d-cf00-4059-8599-57c207e04c2d",
+              "name": "SubmittedAt",
+              "value": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+              "type": "string"
+            },
+            {
+              "id": "fdd75ef6-fa15-40e4-a7c8-098bd5a9b683",
+              "name": "SatisfactionScore",
+              "value": "={{ $json['Overall Rating '] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -128,
+        -64
+      ],
+      "id": "f6d55472-edb1-4f33-a58e-1771b7ae3e75",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zOuIKvrTzjjvc6R6qnVhZTll2erfDvQJkdlwZo5jWc8",
+          "mode": "list",
+          "cachedResultName": "Feedback Analytics Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zOuIKvrTzjjvc6R6qnVhZTll2erfDvQJkdlwZo5jWc8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Raw Responses",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zOuIKvrTzjjvc6R6qnVhZTll2erfDvQJkdlwZo5jWc8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "SubmittedAt": "={{ $json.SubmittedAt }}",
+            "Your Name": "={{ $('Google Sheets Trigger').item.json['Your name'] }}",
+            "Email": "={{ $('Google Sheets Trigger').item.json['Email '] }}",
+            "Overall Rating": "={{ $('Google Sheets Trigger').item.json['Overall Rating '] }}",
+            "SatisfactionScore": "={{ $json.SatisfactionScore }}",
+            "Feedback": "={{ $('Google Sheets Trigger').item.json.Feedback }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "SubmittedAt",
+              "displayName": "SubmittedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Your Name",
+              "displayName": "Your Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Overall Rating",
+              "displayName": "Overall Rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SatisfactionScore",
+              "displayName": "SatisfactionScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Feedback",
+              "displayName": "Feedback",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        96,
+        -48
+      ],
+      "id": "9ba9a72a-f18f-4ccf-92d5-cbb0f99b5dd2",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BHB3srEJrv0RK57i",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Thank you for your feedback!",
+        "message": "=Hi {{ $json[\"Your Name\"] }},  Thank you for taking the time to submit your feedback.  We received your response successfully.  Your satisfaction score: {{ $json[\"Overall Rating\"] }}/5  We really appreciate your feedback.  Best regards, Customer Support Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -64
+      ],
+      "id": "5209f8a0-7029-4426-85b0-ec910431447c",
+      "name": "Send a message",
+      "webhookId": "5e340663-6ada-437b-8d2e-3c781707d1a1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1hNIHh5wxGg4Eyc2",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "95418190-fc24-4cf3-90bb-12ca9a229389",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6d8629da8a8f8a5f7084bd9edf26d5401e9f5fdb8fefc394d53ecb61099b6a9a"
+  },
+  "nodeGroups": [],
+  "id": "yPL25ZrzXwrhlvD4",
+  "tags": []
+}

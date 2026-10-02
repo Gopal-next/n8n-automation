@@ -1,0 +1,528 @@
+{
+  "name": "Multi-Channel Customer Support Triage & Ticket Routing Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-ticket",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        -208
+      ],
+      "id": "9c4aee28-b5b3-439d-bf86-8f7319ca17d5",
+      "name": "Webhook",
+      "webhookId": "ea2469c3-2161-4f4b-8d73-187d0a8795e3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "58b11634-2db0-4cd3-b482-72de3f79111b",
+              "name": "body.customer_name",
+              "value": "={{ $json.body.customer_name }}",
+              "type": "string"
+            },
+            {
+              "id": "5c2ae0f3-f962-4078-b80a-f1650ec200df",
+              "name": "body.customer_email",
+              "value": "={{ $json.body.customer_email }}",
+              "type": "string"
+            },
+            {
+              "id": "0082245e-a921-4989-b711-8d71d1632f9e",
+              "name": "body.source",
+              "value": "={{ $json.body.source }}",
+              "type": "string"
+            },
+            {
+              "id": "3d31cd8b-430e-4655-ab21-f0d4494afbb1",
+              "name": "body.message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -64,
+        -464
+      ],
+      "id": "a02f4c16-c36c-4791-8318-05062295c079",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "tableId": "support_tickets",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "customer_name",
+              "fieldValue": "={{ $('Edit Fields').item.json.body.customer_name }}"
+            },
+            {
+              "fieldId": "customer_email",
+              "fieldValue": "={{ $('Edit Fields').item.json.body.customer_email }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "={{ $('Edit Fields').item.json.body.source }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('Edit Fields').item.json.body.message }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $('If').item.json.category }}"
+            },
+            {
+              "fieldId": "urgency",
+              "fieldValue": "={{ $('If').item.json.urgency }}"
+            },
+            {
+              "fieldId": "sentiment",
+              "fieldValue": "={{ $('If').item.json.sentiment }}"
+            },
+            {
+              "fieldId": "ai_draft",
+              "fieldValue": "={{ $json.content.parts[0].text }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        -128
+      ],
+      "id": "357d35a7-f6fa-43df-984c-8dcd6a56bcc1",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "WIhFzlfbbakmzmoO",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "=models/gemini-3-flash-preview",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "==You are a customer support ticket classifier.\\n\\nAnalyze the customer message and classify it into:\\n\\n1. category\\n2. urgency\\n3. sentiment\\n\\nCategory must be one of:\\nbilling, technical, account, general\\n\\nUrgency must be one of:\\nlow, medium, high\\n\\nSentiment must be one of:\\npositive, neutral, negative\\n\\nReturn ONLY valid JSON in this format:\\n\\n{\\n  \\\"category\\\": \\\"...\\\",\\n  \\\"urgency\\\": \\\"...\\\",\\n  \\\"sentiment\\\": \\\"...\\\"\\n}\\n\\nCustomer message:\\n{{ $('Edit Fields').item.json.body.message }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        -464
+      ],
+      "id": "46e1d9ac-5365-4bc1-873c-b5ce716f35d1",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "TYpFxjEDvnGF8Ktc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.content.parts[0].text;\n\n// Convert escaped newlines/quotes into normal JSON\nconst cleanedText = text\n  .replace(/\\\\n/g, '')\n  .replace(/\\\\\"/g, '\"')\n  .trim();\n\nconst result = JSON.parse(cleanedText);\n\nreturn [{\n  json: {\n    category: result.category,\n    urgency: result.urgency,\n    sentiment: result.sentiment\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -144
+      ],
+      "id": "39efc9cb-a8b3-44d2-98c9-075db1cd807c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f47db225-94f7-4803-8d56-e19f4f103af6",
+              "leftValue": "={{ $json.urgency }}",
+              "rightValue": "low",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        768,
+        -448
+      ],
+      "id": "21fedcae-e390-450e-91b7-bde90006cb5b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a professional customer support representative.\n\nWrite a short, polite, helpful response to the customer using ONLY the relevant information provided below.\n\nRules:\n- Use the provided information as the source of truth.\n- Answer the customer's question directly.\n- Do not invent policies, refunds, prices, timelines, or other information.\n- If the provided information is not enough to answer the question, say that the information is not available and the request should be handled by a human support agent.\n- Keep the response professional and concise.\n- Do not mention AI, RAG, embeddings, knowledge base, or internal systems.\n- Return only the customer-facing response.\n\nCustomer message:\n{{ $('Edit Fields').item.json.body.message }}\n\nRelevant information:\n{{ $json.content }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1328,
+        -288
+      ],
+      "id": "b8dd9d43-b7e7-4a25-b555-d99143fd3dca",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "TYpFxjEDvnGF8Ktc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "https://app.slack.com/client/T0C5JH9J9N3/C0C5Y054YSJ",
+          "mode": "url"
+        },
+        "messageType": "block",
+        "blocksUi": "={\n  \"blocks\": [\n    {\n      \"type\": \"card\",\n      \"block_id\": \"support-ticket-1\",\n      \"title\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"🚨 Urgent Support Ticket\",\n        \"verbatim\": false\n      },\n      \"subtitle\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"Customer: Rahul Kumar · High urgency\",\n        \"verbatim\": false\n      },\n      \"body\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"Someone has accessed my account and changed my password.\",\n        \"verbatim\": false\n      },\n      \"actions\": [\n        {\n          \"type\": \"button\",\n          \"text\": {\n            \"type\": \"plain_text\",\n            \"text\": \"✅ Approve\",\n            \"emoji\": true\n          },\n          \"style\": \"primary\",\n          \"action_id\": \"approve_ticket\",\n          \"value\": \"{{ $('Create a row1').item.json.id }}\"\n        },\n        {\n          \"type\": \"button\",\n          \"text\": {\n            \"type\": \"plain_text\",\n            \"text\": \"❌ Reject\",\n            \"emoji\": true\n          },\n          \"style\": \"danger\",\n          \"action_id\": \"reject_ticket\",\n          \"value\": \"{{ $('Create a row1').item.json.id }}\"\n        }\n      ]\n    }\n  ]\n}",
+        "text": "hii ddsf",
+        "otherOptions": {
+          "includeLinkToWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        1184,
+        -128
+      ],
+      "id": "e6ff9b45-fec6-49f8-b624-3bbca12d5ac9",
+      "name": "Send a message",
+      "webhookId": "f327aa34-558a-4d9c-ac35-c07b09e48baa",
+      "credentials": {
+        "slackApi": {
+          "id": "j8mISKsTIolUDHHa",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "tableId": "support_tickets",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "customer_name",
+              "fieldValue": "={{ $('Edit Fields').item.json.body.customer_name }}"
+            },
+            {
+              "fieldId": "customer_email",
+              "fieldValue": "={{ $('Edit Fields').item.json.body.customer_email }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "={{ $('Edit Fields').item.json.body.source }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('Edit Fields').item.json.body.message }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $('If').item.json.category }}"
+            },
+            {
+              "fieldId": "urgency",
+              "fieldValue": "={{ $('If').item.json.urgency }}"
+            },
+            {
+              "fieldId": "sentiment",
+              "fieldValue": "={{ $('If').item.json.sentiment }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "escalated"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        912,
+        -144
+      ],
+      "id": "2bb17d03-e353-435a-8d31-27827c988eca",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "WIhFzlfbbakmzmoO",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pugfjjbbovfcfmwufxak.supabase.co/rest/v1/rpc/match_documents",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "put your valid supabase anon key here"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer put your valid supabase anon key here"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query_embedding\": {{ JSON.stringify($json.embedding.values) }},\n  \"match_count\": 3\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1264,
+        -512
+      ],
+      "id": "e8068285-ec03-4d06-9670-419fbe452f4c",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "Your Gemini api key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {\n    \"parts\": [\n      {\n        \"text\": \"{{ $('Edit Fields').item.json.body.message }}\"\n      }\n    ]\n  },\n  \"outputDimensionality\": 768\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1040,
+        -464
+      ],
+      "id": "ffb877ce-3e6a-4f5c-b8fb-afc4b718408d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.all();\n\nconst context = results\n  .map((item, index) => {\n    return `Knowledge ${index + 1}:\n${item.json.content}`;\n  })\n  .join('\\n\\n');\n\nconst question = $('Edit Fields').first().json.body.message;\nreturn [\n  {\n    json: {\n      question,\n      context\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -304
+      ],
+      "id": "22a339ed-3d5a-4db3-b20f-269c778d08a0",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Create a row1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b5531426-130c-4830-b113-30f09590375f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6d8629da8a8f8a5f7084bd9edf26d5401e9f5fdb8fefc394d53ecb61099b6a9a"
+  },
+  "nodeGroups": [],
+  "id": "UqoocM52j5ftEvhG",
+  "tags": []
+}

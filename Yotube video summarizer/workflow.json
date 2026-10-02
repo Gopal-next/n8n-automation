@@ -1,0 +1,822 @@
+{
+  "name": "YouTube Video Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "YouTube Video Summarizer",
+        "formDescription": "Paste a YouTube video link to get an AI-generated summary.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "YouTube URL",
+              "placeholder": "https://www.youtube.com/watch?v=...",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "buttonLabel": "Summarize",
+          "path": "youtube-summarizer"
+        }
+      },
+      "id": "27a5ad07-744b-4217-9d49-fcda81d739b1",
+      "name": "Paste YouTube Link",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -608,
+        -224
+      ],
+      "webhookId": "5e47eaf2-234d-4f8c-bec8-4a4756815a70"
+    },
+    {
+      "parameters": {
+        "url": "https://api.supadata.ai/v1/transcript",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "={{ $json['YouTube URL'] }}"
+            },
+            {
+              "name": "text",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c01dce43-83ac-41dd-b09c-e045a2d5a6c6",
+      "name": "Fetch Transcript",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -256,
+        -336
+      ],
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "fl1xwsgC4nW9spq8",
+          "name": "Supadata API (Gopal K)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an expert assistant that writes clear, well-structured summaries of YouTube video transcripts. Produce a concise summary with a short overview paragraph followed by 4-7 key bullet points. Use plain language."
+            },
+            {
+              "content": "=Summarize the following YouTube video transcript:\n\n{{ $('Extract VideoID').item.json.content }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 800
+        }
+      },
+      "id": "a3abb6ac-70c4-4941-a515-33314b2176dc",
+      "name": "Summarize Transcript",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        -176
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=<h2>Video Summary</h2><div style=\"white-space:pre-wrap;font-size:16px;line-height:1.5\">{{ $json.output[0].content[0].text }}</div>"
+      },
+      "id": "6b7f857a-f631-4295-b9bd-1ca94916ba39",
+      "name": "Show Summary",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        1504,
+        -176
+      ],
+      "webhookId": "35b708ba-daaa-467f-9c53-6c742dc94cb2"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "URL",
+        "completionMessage": "<div style=\"text-align:center; padding:20px;\">\n  <h2>❌ Invalid YouTube URL</h2>\n\n  <p>Please enter a valid YouTube video link.</p>\n\n  <p><strong>Example:</strong></p>\n  <p>https://www.youtube.com/watch?v=XXXXXXXXXXX</p>\n\n  <p style=\"margin-top:15px;\">\n    Make sure the YouTube URL and video ID are complete.\n  </p>\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -352,
+        -16
+      ],
+      "id": "78d99820-ae82-4f4c-9f7f-6464f0be9929",
+      "name": "Form",
+      "webhookId": "27617f26-c6d7-47d8-a9fe-c6d17cc4b994"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "error",
+        "completionMessage": "<h2>⚠️ Unable to Fetch Transcript</h2>\n\n<p>The YouTube link format is valid, but the video or transcript could not be found.</p>\n\n<p>Please check the video URL and try again.</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -160,
+        -64
+      ],
+      "id": "8d1d4731-d626-462c-8ed9-f810fd9b8f60",
+      "name": "Form1",
+      "webhookId": "b046361e-2288-49a7-9577-f4336d97f625"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e764e713-ce12-4f6a-b78c-6559b6480da2",
+              "leftValue": "={{ $json['YouTube URL'] }}",
+              "rightValue": "^(https?:\\/\\/)?(www\\.)?(youtube\\.com\\/watch\\?v=[A-Za-z0-9_-]{11}|youtu\\.be\\/[A-Za-z0-9_-]{11}|youtube\\.com\\/shorts\\/[A-Za-z0-9_-]{11})$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            },
+            {
+              "id": "11030812-b6d9-4865-b157-5611cb996598",
+              "leftValue": "={{ $json['YouTube URL'] }}",
+              "rightValue": "❌ Invalid YouTube URL  Please enter a valid YouTube video link.",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -448,
+        -224
+      ],
+      "id": "e950ea0b-67fc-4360-95fd-22f04372c01f",
+      "name": "Filter link"
+    },
+    {
+      "parameters": {
+        "jsCode": "const transcript = $json.content || '';\n\nconst cleanedTranscript = transcript\n  .replace(/\\s+/g, ' ')\n  .trim();\n\nreturn {\n  json: {\n    ...$json,\n    content: cleanedTranscript\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        -352
+      ],
+      "id": "4e703bad-87d1-4b2e-92dd-9d8d9a39622d",
+      "name": "Clean Transcript",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const url = $('Filter link').first().json['YouTube URL'];\n\nconst videoId = url.split('v=')[1]?.split('&')[0];\n\nreturn {\n  json: {\n    ...$json,\n    videoId\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -272
+      ],
+      "id": "4822fcec-d969-48b9-a3c6-493e77d607c8",
+      "name": "Extract VideoID"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0",
+          "mode": "list",
+          "cachedResultName": "Video History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Video",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "videoId",
+              "lookupValue": "={{ $json.videoId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        352,
+        -336
+      ],
+      "id": "83290d68-1c13-4eac-9f55-dd175c83e52e",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tNsyVi1bjKthtGT9",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aecd2abc-cb31-49dd-8916-434679de9f8f",
+              "leftValue": "={{ $json.videoId }}",
+              "rightValue": "={{ $('Extract VideoID').item.json.videoId }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        -336
+      ],
+      "id": "626db108-c3ad-478c-a73f-4827b110080a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "summary",
+        "completionMessage": "=<h2>Video Summary</h2><div style=\"white-space:pre-wrap;font-size:16px;line-height:1.5\">{{ $json.Summary }}</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        1008,
+        -384
+      ],
+      "id": "6f80d615-0a04-4b2a-8162-290f4482b498",
+      "name": "Form2",
+      "webhookId": "874ef330-78b0-4bb4-98d2-4ac2f086b720"
+    },
+    {
+      "parameters": {
+        "jsCode": "const transcript = $('Clean Transcript').first().json.content || '';\n\nreturn {\n  json: {\n    ...$json,\n    text_length: transcript.length\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -32
+      ],
+      "id": "a3ead3ba-bf91-404f-8aea-4bf8486bafe5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8e8b81c9-a1d7-48ba-bfe4-038e52a3c3a9",
+              "leftValue": "={{ $json.text_length }}",
+              "rightValue": 5000,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        -48
+      ],
+      "id": "064a0d9b-4808-4b6e-90cd-f86866bd1569",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const transcript = $('Extract VideoID').first().json.content || '';\n\nconst chunkSize = 5000;\nconst chunks = [];\n\nfor (let i = 0; i < transcript.length; i += chunkSize) {\n  chunks.push(transcript.slice(i, i + chunkSize));\n}\n\nreturn chunks.map((chunk, index) => ({\n  json: {\n    chunk: chunk,\n    chunk_number: index + 1,\n    total_chunks: chunks.length\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        48
+      ],
+      "id": "5e3b5ecb-45d8-4a22-8072-12d62e753119",
+      "name": "Code in JavaScript1",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an expert assistant that writes clear, well-structured summaries of YouTube video transcripts. Produce a concise summary with a short overview paragraph followed by 4-7 key bullet points. Use plain language."
+            },
+            {
+              "content": "=Summarize the following YouTube video transcript:\n\n{{ $json.chunk }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 800
+        }
+      },
+      "id": "90d9be5a-97e6-4564-9d64-7dc7c242fc98",
+      "name": "Summarize Transcript1",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1024,
+        48
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=<h2>Video Summary</h2><div style=\"white-space:pre-wrap;font-size:16px;line-height:1.5\">{{ $json.combined_summary }}</div>"
+      },
+      "id": "398fb895-57b6-49fc-aeb5-57fab6251bc4",
+      "name": "Show Summary1",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        1600,
+        112
+      ],
+      "webhookId": "35b708ba-daaa-467f-9c53-6c742dc94cb2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst combined = items\n  .map((item, index) => {\n    const summary = item.json.output?.[0]?.content?.[0]?.text || '';\n\n    return summary;\n  })\n  .filter(summary => summary.trim() !== '')\n  .join('\\n\\n');\n\nreturn [\n  {\n    json: {\n      combined_summary: combined\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        48
+      ],
+      "id": "17ab25de-dcbf-48e2-b13c-538cefcc95eb",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0",
+          "mode": "list",
+          "cachedResultName": "Video History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Video",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Created At": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+            "Summary": "={{ $json.output[0].content[0].text }}",
+            "videoId": "={{ $('Extract VideoID').item.json.videoId }}",
+            "YouTube URL": "={{ $('Filter link').item.json['YouTube URL'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "videoId",
+              "displayName": "videoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YouTube URL",
+              "displayName": "YouTube URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1376,
+        -368
+      ],
+      "id": "4fdbdd68-37c3-47aa-8183-5324b9fbfb77",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tNsyVi1bjKthtGT9",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0",
+          "mode": "list",
+          "cachedResultName": "Video History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Video",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgY_dfR4dclEGh5z4bbZzRWx3yYbeIpLl-o2viN57o0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Created At": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+            "Summary": "={{ $json.combined_summary }}",
+            "videoId": "={{ $('Extract VideoID').item.json.videoId }}",
+            "YouTube URL": "={{ $('Filter link').item.json['YouTube URL'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "videoId",
+              "displayName": "videoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YouTube URL",
+              "displayName": "YouTube URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1648,
+        -80
+      ],
+      "id": "5c71b24e-912d-4290-8ac4-a50785e519f1",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tNsyVi1bjKthtGT9",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Paste YouTube Link": {
+      "main": [
+        [
+          {
+            "node": "Filter link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Transcript": {
+      "main": [
+        [
+          {
+            "node": "Clean Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Form1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Transcript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Show Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter link": {
+      "main": [
+        [
+          {
+            "node": "Fetch Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Transcript": {
+      "main": [
+        [
+          {
+            "node": "Extract VideoID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract VideoID": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Form2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Summarize Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Summarize Transcript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Transcript1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Show Summary1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "507c0793-4398-4c3c-89a5-d6805475e54d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b57ee934885a50224277a17ef1df21573497a0f9fb9d51ac6c3370050526090a"
+  },
+  "nodeGroups": [],
+  "id": "wp5p7KIuMuk9h3Vv",
+  "tags": []
+}

@@ -1,0 +1,525 @@
+{
+  "name": "Multi-Channel Customer Support Triage & Ticket Routing Pipeline 2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "slack-approval",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        -192
+      ],
+      "id": "d9233369-727e-4e56-aa97-fa486f822c04",
+      "name": "Webhook",
+      "webhookId": "2ead364f-8efe-42d9-9ccf-f1857492d3b7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = JSON.parse($json.body.payload);\nconst action = payload.actions[0];\n\nreturn [\n  {\n    json: {\n      action_id: action.action_id,\n      ticket_id: action.value,\n      channel_id: payload.container.channel_id,\n      message_ts: payload.container.message_ts\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -16
+      ],
+      "id": "b875f3cf-151a-49ab-a1b1-ac768785f465",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5f08ff5a-d364-4e19-971a-8131b3accadb",
+              "leftValue": "={{ $json.action_id }}",
+              "rightValue": "approve_ticket",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        -256
+      ],
+      "id": "0fe2a39c-a944-4088-8ac6-429fbe4ca830",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "support_tickets",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.ticket_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "rejected"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        512,
+        32
+      ],
+      "id": "0be24660-298e-457c-96e8-66713bd208f2",
+      "name": "approval rejected",
+      "credentials": {
+        "supabaseApi": {
+          "id": "WIhFzlfbbakmzmoO",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "support_tickets",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.ticket_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "approved"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -256
+      ],
+      "id": "5de37582-48f4-459f-8065-6b1f0bd480f5",
+      "name": "approval approved",
+      "credentials": {
+        "supabaseApi": {
+          "id": "WIhFzlfbbakmzmoO",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "https://app.slack.com/client/T0C5JH9J9N3/C0C5Y054YSJ",
+          "mode": "url"
+        },
+        "text": "=❌ Support ticket rejected.  \n\nTicket ID: {{ $('Code in JavaScript').item.json.ticket_id }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        1024,
+        -16
+      ],
+      "id": "2a91501f-436a-4a43-b7eb-b3d8c80b02d3",
+      "name": "Send a message",
+      "webhookId": "7e941f66-e2c2-4557-af92-7123400e1171",
+      "credentials": {
+        "slackApi": {
+          "id": "j8mISKsTIolUDHHa",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Code in JavaScript').item.json.channel_id }}",
+          "mode": "id"
+        },
+        "text": "=✅ Support ticket approved.  \n\nTicket ID: {{ $('Code in JavaScript').item.json.ticket_id }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        736,
+        -304
+      ],
+      "id": "64ae3930-2e21-40fe-9fc2-c6c36796be8c",
+      "name": "Send a message1",
+      "webhookId": "c7365b80-8d6c-49dd-bb81-a7ed268fc75f",
+      "credentials": {
+        "slackApi": {
+          "id": "j8mISKsTIolUDHHa",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a professional customer support representative.\n\nWrite a short, polite, helpful response to the customer using ONLY the customer information and relevant information provided below.\n\nRules:\n- This ticket has already been reviewed and approved by a human support agent.\n- Use the relevant information as the source of truth.\n- Answer the customer's question directly.\n- Do not invent refunds, policies, prices, timelines, or commitments.\n- If the relevant information is not enough to answer the question, say that the information is not available and the request should be handled by a human support agent.\n- Keep the response professional and concise.\n- Do not mention AI, RAG, embeddings, knowledge base, or internal systems.\n- Return only the customer-facing response.\n\nCustomer name:\n{{ $('approval approved').item.json.customer_name }}\n\nCustomer message:\n{{ $('approval approved').item.json.message }}\n\nCategory:\n{{ $('approval approved').item.json.category }}\n\nUrgency:\n{{ $('approval approved').item.json.urgency }}\n\nSentiment:\n{{ $('approval approved').item.json.sentiment }}\n\nRelevant information:\n{{ $json.content }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        -112
+      ],
+      "id": "acae80f8-d399-41e6-aa81-5d785c03577f",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "TYpFxjEDvnGF8Ktc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "support_tickets",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('approval approved').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "ai_draft",
+              "fieldValue": "={{ $json.content.parts[0].text }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "response_ready"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        32
+      ],
+      "id": "e43bcb99-66c2-4649-bec0-f99f7a89ab68",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "WIhFzlfbbakmzmoO",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "https://app.slack.com/client/T0C5JH9J9N3/C0C5Y054YSJ",
+          "mode": "url"
+        },
+        "text": "=🤖 AI response ready  \nTicket ID: {{ $('If').item.json.ticket_id }}\nThe approved ticket has been processed and the AI-generated response has been saved in Supabase.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        1808,
+        -144
+      ],
+      "id": "9cdb2a77-afa7-414e-babf-1266ae6464a7",
+      "name": "Send a message2",
+      "webhookId": "62a75fae-1e61-42f2-8d60-2b078bc39f3f",
+      "credentials": {
+        "slackApi": {
+          "id": "j8mISKsTIolUDHHa",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "gk3910598@gmail.com",
+        "subject": "Regarding your support request",
+        "message": "={{ $('Message a model').item.json.content.parts[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1968,
+        -160
+      ],
+      "id": "23a9a172-6b4b-4b25-841f-b9f563918d0f",
+      "name": "Send a message3",
+      "webhookId": "094eb0cc-4f41-4aa6-9921-ebfc143d1273",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1hNIHh5wxGg4Eyc2",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pugfjjbbovfcfmwufxak.supabase.co/rest/v1/rpc/match_documents",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "put your valid supabase anon key here"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer put your valid supabase anon key here"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query_embedding\": {{ JSON.stringify($json.embedding.values) }},\n  \"match_count\": 3\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        -336
+      ],
+      "id": "bc0583c7-2a48-4bc7-8244-7c9f539f3509",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "Your Gemini api key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {\n    \"parts\": [\n      {\n        \"text\": \"{{ $('approval approved').item.json.message }}\"\n      }\n    ]\n  },\n  \"outputDimensionality\": 768\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        -352
+      ],
+      "id": "d2b2a6f0-cfa9-4e86-a9ea-92f3331fbad8",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "approval approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "approval rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "approval rejected": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "approval approved": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message2": {
+      "main": [
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2555d284-0275-4665-b113-d8c272b182ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6d8629da8a8f8a5f7084bd9edf26d5401e9f5fdb8fefc394d53ecb61099b6a9a"
+  },
+  "nodeGroups": [],
+  "id": "7Qq2SClUd49YSewb",
+  "tags": []
+}
